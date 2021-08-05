@@ -23,14 +23,19 @@ namespace Mediator
             {
 
 
+
+
+                //Send with queue creating with ezchange bindiungs
+                // cfg.AddRequestClient<SubmitOrder>(new Uri($"queue:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
+
+                //Sending to specific exchange without creating queue
+                //cfg.AddRequestClient<SubmitOrder>(new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
+
+
                 //Publish
                 cfg.AddRequestClient<SubmitOrder>();
 
-                //Send with queue creating with ezchange bindiungs
-                cfg.AddRequestClient<SubmitOrder>(new Uri($"queue:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
-
-                //Sending to specific exchange without creating queue
-                cfg.AddRequestClient<SubmitOrder>(new Uri($"exchange:{KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>()}"));
+                cfg.AddRequestClient<CheckOrder>();
 
                 cfg.UsingRabbitMq((context, configurator) =>
                 {

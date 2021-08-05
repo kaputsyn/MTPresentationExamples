@@ -1,4 +1,5 @@
-﻿using Contracts;
+﻿using Components.StateMachines;
+using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,21 +13,44 @@ namespace Mediator.Controllers
     public class OrderController: Controller
     {
         private readonly ILogger<OrderController> _logger;
-        private readonly IRequestClient<SubmitOrder> _requestClient;
+        private readonly IRequestClient<SubmitOrder> _requestClientSubmitOrder;
         private readonly ISendEndpointProvider _sendEndpointProvider;
+        private readonly IRequestClient<CheckOrder> _requestClientCheckOrder;
 
         public OrderController(ILogger<OrderController> logger
-            , IRequestClient<SubmitOrder> requestClient
-            ,ISendEndpointProvider sendEndpointProvider)
+            ,IRequestClient<SubmitOrder> requestClientSubmitOrder
+            ,ISendEndpointProvider sendEndpointProvider
+            ,IRequestClient<CheckOrder> requestClientCheckOrder)
         {
             _logger = logger;
-            _requestClient = requestClient;
+            _requestClientSubmitOrder = requestClientSubmitOrder;
             _sendEndpointProvider = sendEndpointProvider;
+            _requestClientCheckOrder = requestClientCheckOrder;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get(Guid id) 
+        {
+            var (status, notFound) = await _requestClientCheckOrder.GetResponse<OrderStatus,OrderNotFound>(new
+            {
+                OrderId = id
+            });
+
+            if (status.IsCompletedSuccessfully)
+            {
+                var resp = await status;
+                return Ok(resp.Message);
+            }
+            else 
+            {
+                var resp = await notFound;
+                return NotFound(resp.Message);
+            }
         }
         [HttpPost]
         public async Task<IActionResult> Post(Guid id, string customerNumber) 
         {
-            var (accepted, rejected) = await _requestClient.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
+            var (accepted, rejected) = await _requestClientSubmitOrder.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
             {
                 OrderId = id,
                 TimeStamp = InVar.Timestamp,

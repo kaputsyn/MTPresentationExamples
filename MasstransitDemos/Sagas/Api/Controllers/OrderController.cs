@@ -29,8 +29,9 @@ namespace Mediator.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid id) 
+        public async Task<IActionResult> Get(Guid? id) 
         {
+            id ??= Guid.NewGuid();
             var (status, notFound) = await _requestClientCheckOrder.GetResponse<OrderStatus,OrderNotFound>(new
             {
                 OrderId = id
@@ -48,8 +49,10 @@ namespace Mediator.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> Post(Guid id, string customerNumber) 
+        public async Task<IActionResult> Post(Guid? id, string customerNumber) 
         {
+            id ??= Guid.NewGuid();
+
             var (accepted, rejected) = await _requestClientSubmitOrder.GetResponse<OrderSubmissionAccepted, OrderSubmissionRejected>(new
             {
                 OrderId = id,

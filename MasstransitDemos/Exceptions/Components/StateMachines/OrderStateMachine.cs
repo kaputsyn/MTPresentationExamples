@@ -1,7 +1,8 @@
 ﻿using Automatonymous;
 using Contracts;
+using GreenPipes;
 using MassTransit;
-using MassTransit.RedisIntegration;
+using MassTransit.Definition;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -34,6 +35,9 @@ namespace Components.StateMachines
                     context.Instance.CustomerNumber = context.Data.CustomerNumber;
                     context.Instance.Updated = DateTime.UtcNow;
                     context.Instance.SubmitDate = context.Data.TimeStamp;
+
+
+                    throw new Exception("Error occured while submiting order");
                 })
                 .TransitionTo(Submitted)
                 );
@@ -60,7 +64,7 @@ namespace Components.StateMachines
     }
 
 
-    public class OrderState : SagaStateMachineInstance, IVersionedSaga
+    public class OrderState : SagaStateMachineInstance
     {
         public Guid CorrelationId { get; set; }
 
@@ -71,6 +75,18 @@ namespace Components.StateMachines
         public DateTime? Updated { get; set; }
 
         public string CurrentState { get; set; }
-        public int Version { get; set; }
+    }
+
+    public class OrderStateMachineDefinition : SagaDefinition<OrderState> 
+    {
+
+        public OrderStateMachineDefinition()
+        {
+            ConcurrentMessageLimit = 4;
+        }
+        protected override void ConfigureSaga(IReceiveEndpointConfigurator endpointConfigurator, ISagaConfigurator<OrderState> sagaConfigurator)
+        {
+            endpointConfigurator.UseMessageRetry(r => r.Intervals(500, 5000, 10000));
+        }
     }
 }

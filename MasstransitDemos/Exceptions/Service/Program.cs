@@ -37,8 +37,8 @@ namespace Service
                      services.AddMassTransit(x =>
                      {
                          x.AddConsumer<SubmitOrderConsumer>();
-                         x.AddSagaStateMachine<OrderStateMachine, OrderState>()
-                         .RedisRepository("127.0.0.3");
+                         x.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
+                         .InMemoryRepository();
 
                          x.UsingRabbitMq(ConfigureBus);
 

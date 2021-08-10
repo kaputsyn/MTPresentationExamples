@@ -41,10 +41,10 @@ namespace Mediator
                 {
                     configurator.ConfigureEndpoints(context);
 
-                    configurator.Host("10.10.17.15", "demo", cfg =>
+                    configurator.Host("localhost", "/", cfg =>
                     {
-                        cfg.Username("demo");
-                        cfg.Password("demo");
+                        cfg.Username("guest");
+                        cfg.Password("guest");
 
                     });
                 });

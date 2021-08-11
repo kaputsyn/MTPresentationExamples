@@ -21,20 +21,20 @@ namespace Components
         {
             _logger.LogDebug("SubmitOrderConsumer: {CustomerNumber}", context.Message.CustomerNumber);
 
-            //if (context.Message.CustomerNumber.Contains("TEST")) 
-            //{
-            //    if (context.ResponseAddress != null) 
-            //    {
-            //        await context.RespondAsync<OrderSubmissionRejected>(new
-            //        {
-            //            OrderId = context.Message.OrderId,
-            //            TimeStamp = InVar.Timestamp,
-            //            CustomerNumber = context.Message.CustomerNumber,
-            //            Reason = $"Test Customer cannot submit orders: {context.Message.CustomerNumber}"
-            //        });
-            //    }               
-            //    return;
-            //}
+            if (context.Message.CustomerNumber.Contains("TEST"))
+            {
+                if (context.ResponseAddress != null)
+                {
+                    await context.RespondAsync<OrderSubmissionRejected>(new
+                    {
+                        OrderId = context.Message.OrderId,
+                        TimeStamp = InVar.Timestamp,
+                        CustomerNumber = context.Message.CustomerNumber,
+                        Reason = $"Test Customer cannot submit orders: {context.Message.CustomerNumber}"
+                    });
+                }
+                return;
+            }
 
             await  context.Publish<OrderSubmited>(new
             {
@@ -43,15 +43,15 @@ namespace Components
                 CustomerNumber = context.Message.CustomerNumber
             });
 
-            //if (context.ResponseAddress != null)
-            //{
-            //    await context.RespondAsync<OrderSubmissionAccepted>(new
-            //    {
-            //        OrderId = context.Message.OrderId,
-            //        TimeStamp = InVar.Timestamp,
-            //        CustomerNumber = context.Message.CustomerNumber
-            //    });
-            //}
+            if (context.ResponseAddress != null)
+            {
+                await context.RespondAsync<OrderSubmissionAccepted>(new
+                {
+                    OrderId = context.Message.OrderId,
+                    TimeStamp = InVar.Timestamp,
+                    CustomerNumber = context.Message.CustomerNumber
+                });
+            }
         }
     }
 }

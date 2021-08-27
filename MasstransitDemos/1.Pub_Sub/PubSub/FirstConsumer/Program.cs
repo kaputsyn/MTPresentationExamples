@@ -1,0 +1,36 @@
+﻿using HumidityListener;
+using MassTransit;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace FirstConsumer
+{
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
+            {
+                cfg.ReceiveEndpoint("humidity-changed", e =>
+                {
+                    e.Consumer<HumidityConsumer>();
+                });
+            });
+
+            var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            await busControl.StartAsync(source.Token);
+            try
+            {
+                Console.WriteLine("Press enter to exit");
+
+                await Task.Run(() => Console.ReadLine());
+            }
+            finally
+            {
+                await busControl.StopAsync();
+            }
+        }
+    }
+}

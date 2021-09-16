@@ -34,28 +34,29 @@ var builder = new HostBuilder()
                          configurator.ReceiveEndpoint("EXCEPTIONS-transient-error", e =>
                          {
                              e.ConfigureConsumer<TransientErrorConsumer>(context);
-                             e.UseMessageRetry(cfg =>
+                             //e.UseMessageRetry(cfg =>
+                             //{
+                             //    cfg.Handle<ArgumentException>();
+
+
+
+                             //    cfg.Interval(5, 1000);
+                             //    });
+                             e.UseKillSwitch(cfg =>
                              {
-                                 cfg.Handle<ArgumentException>();
-
-
-
-                                 cfg.Interval(10, 3000);
+                                 cfg.ActivationThreshold = 5;
+                                 cfg.RestartTimeout = TimeSpan.FromSeconds(10);
+                                 cfg.TripThreshold = 10;
                              });
-                                 //e.UseKillSwitch(cfg =>
-                                 //{
-                                 //    cfg.ActivationThreshold = 5;
-                                 //    cfg.RestartTimeout = TimeSpan.FromSeconds(10);
-                                 //    cfg.TripThreshold = 10;
-                                 //});
-
-                             });
-
-                         configurator.ReceiveEndpoint(e => {
-                             e.ConfigureConsumer<FaultConsumer>(context);
-                             
 
                          });
+
+                             configurator.ReceiveEndpoint(e =>
+                             {
+                                 e.ConfigureConsumer<FaultConsumer>(context);
+
+
+                             });
 
 
 

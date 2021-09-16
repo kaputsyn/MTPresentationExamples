@@ -15,6 +15,9 @@ namespace Saga.Components
         {
 
             Event(() => OrderSubmitted, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => OrderCanceled, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => OrderProcessingRequested, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => OrderProcessed, x => x.CorrelateById(m => m.Message.OrderId));
 
             Event(() => OrderStatusRequested, x =>
             {
@@ -31,8 +34,9 @@ namespace Saga.Components
                 }));
             });
 
-            Event(() => AccountClosed, x => x.CorrelateBy((instance, context) => instance.CustomerNumber == context.Message.CustomerNumber));
             InstanceState(x => x.CurrentState);
+
+            
 
             Initially(When(OrderSubmitted)
                 .Then(context => 
@@ -43,7 +47,6 @@ namespace Saga.Components
                 })
                 .TransitionTo(Submitted));
 
-            During(Submitted, Ignore(OrderSubmitted),When(AccountClosed).TransitionTo(Canceled));
 
             //Not include initial and final states
             DuringAny(When(OrderSubmitted)
@@ -61,14 +64,37 @@ namespace Saga.Components
                     OrderId = context.Instance.CorrelationId,
                     State = context.Instance.CurrentState
                 })));
+
+ 
+
+            During(Submitted,
+          When(OrderProcessingRequested).PublishAsync(context => context.Init<ProcessOrder>(new
+          {
+              OrderId = context.Instance.CorrelationId,
+              TimeStamp = InVar.Timestamp,
+              CustomerNumber = context.Instance.CustomerNumber
+          })));
+
+            DuringAny(
+         When(OrderCanceled)
+         .TransitionTo(Canceled));
+
+            During(Submitted,
+          When(OrderProcessed)
+          .Finalize());
+
+           SetCompletedWhenFinalized();
         }
 
         public State Submitted { get; private set; }
+
         public State Canceled { get; private set; }
         public Event<OrderSubmitted> OrderSubmitted { get; private set; }
         public Event<CheckOrder> OrderStatusRequested { get; private set; }
+        public Event<OrderProcessingRequested> OrderProcessingRequested { get; private set; }
+        public Event<OrderCanceled> OrderCanceled { get; private set; }
+        public Event<OrderProcessed> OrderProcessed { get; private set; }
 
-        public Event<CustomerAccountClosed> AccountClosed { get; private set; }
     }
 
     public class OrderStateMachineDefinition : SagaDefinition<OrderState> 
@@ -88,7 +114,6 @@ namespace Saga.Components
     {
         public Guid CorrelationId { get; set; }
         public int Version { get; set; }
-
         public string CurrentState { get; set; }
 
         public string CustomerNumber { get; set; }

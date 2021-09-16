@@ -21,7 +21,7 @@ public class FaultyController : ControllerBase
         if(new Random().Next(5) != 1)
         {
             _logger.LogError("Failed to handle request. Service is not ready");
-            throw new Exception("Failed to handle request.Service is not ready");
+            return BadRequest();
         }
         else 
         {

@@ -1,6 +1,7 @@
 ﻿using Contracts;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,12 @@ namespace Producer
     internal class ProducerHostedService : BackgroundService
     {
         private readonly ISendEndpointProvider _sendEndpointProvider;
+        private readonly ILogger<ProducerHostedService> _logger;
 
-        public ProducerHostedService(ISendEndpointProvider sendEndpointProvider)
+        public ProducerHostedService(ISendEndpointProvider sendEndpointProvider, ILogger<ProducerHostedService> logger)
         {
             _sendEndpointProvider = sendEndpointProvider;
+            _logger = logger;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -27,6 +30,8 @@ namespace Producer
                 {
                     JobDescription = i.ToString()
                 });
+                _logger.LogInformation($"Event has been sent: {i}");
+
                 await Task.Delay(100);
             }
         }

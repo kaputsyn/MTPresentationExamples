@@ -28,6 +28,8 @@ var builder = new HostBuilder()
                  services.AddMassTransit(x =>
                  {
                      x.AddConsumer<SubmitOrderConsumer>();
+                     x.AddConsumer<CancelOrderConsumer>();
+                     x.AddConsumer<ProcessOrderConsumer>();
 
                      x.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
                      .RedisRepository();

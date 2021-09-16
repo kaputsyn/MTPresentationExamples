@@ -12,16 +12,19 @@ public class OrderController : ControllerBase
     private readonly IRequestClient<SubmitOrder> _requestClientSubmitOrder;
     private readonly ISendEndpointProvider _sendEndpointProvider;
     private readonly IRequestClient<CheckOrder> _checkOrderClient;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public OrderController(ILogger<OrderController> logger
         , IRequestClient<SubmitOrder> requestClientSubmitOrder
         , ISendEndpointProvider sendEndpointProvider
-        ,IRequestClient<CheckOrder> checkOrderClient)
+        ,IRequestClient<CheckOrder> checkOrderClient
+        ,IPublishEndpoint publishEndpoint)
     {
         _logger = logger;
         _requestClientSubmitOrder = requestClientSubmitOrder;
         _sendEndpointProvider = sendEndpointProvider;
         _checkOrderClient = checkOrderClient;
+        _publishEndpoint = publishEndpoint;
     }
 
     [HttpPost]
@@ -67,6 +70,34 @@ public class OrderController : ControllerBase
         });
 
         return Accepted();
+
+    }
+
+    [HttpPatch]
+    public async Task<IActionResult> Patch(Guid id)
+    {
+        await _publishEndpoint.Publish<OrderProcessingRequested>(new
+        {
+            OrderId = id
+        });
+
+        return Ok();
+
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        
+        var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri("exchange:cancel-order"));
+
+        await endpoint.Send<CancelOrder>(new
+        {
+            OrderId = id,
+            TimeStamp = InVar.Timestamp
+        });
+
+        return Ok();
 
     }
 

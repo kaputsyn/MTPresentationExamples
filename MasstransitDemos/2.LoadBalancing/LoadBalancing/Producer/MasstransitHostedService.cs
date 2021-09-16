@@ -23,7 +23,7 @@ namespace Producer
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await _busControl.StartAsync(cancellationToken).ConfigureAwait(false);
+            await _busControl.StopAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

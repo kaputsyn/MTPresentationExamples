@@ -92,49 +92,5 @@ namespace Saga.Components.Tests
             }
         }
 
-
-        [Test]
-        public async Task Should_cancel_when_customer_account_closed()
-        {
-            var mockLogger = new Mock<ILogger<SubmitOrderConsumer>>();
-            var orderStateMachine = new OrderStateMachine();
-
-            var harness = new InMemoryTestHarness();
-            var saga = harness.StateMachineSaga<OrderState, OrderStateMachine>(orderStateMachine);
-
-            await harness.Start();
-
-            try
-            {
-                var orderId = Guid.NewGuid();
-
-                await harness.Bus.Publish<OrderSubmitted>(new
-                {
-                    OrderId = orderId,
-                    TimeStamp = InVar.Timestamp,
-                    CustomerNumber = "12345"
-                });
-
-                Assert.That(saga.Created.Select(x => x.CorrelationId == orderId).Any(), Is.True);
-
-                var instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
-
-                await harness.Bus.Publish<CustomerAccountClosed>(new
-                {
-                    CustomerId = InVar.Id,
-                    CustomerNumber = "12345"
-                });
-
-                instanceId = await saga.Exists(orderId, x => x.Submitted);
-                Assert.That(instanceId, Is.Not.Null);
-
-
-            }
-            finally
-            {
-                await harness.Stop();
-            }
-        }
     }
 }

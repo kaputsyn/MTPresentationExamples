@@ -12,7 +12,7 @@ namespace TemperatureListener
     {
         public Task Consume(ConsumeContext<ITemperatureChanged> context)
         {
-            Console.WriteLine($"IHumidityChanged event consumed. New temperature: {context.Message.NewTemperatureKelvin} K");
+            Console.WriteLine($"ITemperatureChanged event consumed. New temperature: {context.Message.NewTemperatureKelvin} K");
 
             return Task.CompletedTask;
         }
